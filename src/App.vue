@@ -1,23 +1,29 @@
 <template>
   <v-app>
-    <v-main>
-      <HelloWorld />
+    <v-main
+      :style="{
+        backgroundImage: `url(${bg})`,
+        backgroundSize: '100% 100%',
+        backgroundRepeat: 'no-repeat',
+      }"
+    >
+      <Main />
     </v-main>
   </v-app>
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld.vue";
+import Main from "./components/Main.vue";
+import bg from "./assets/bg.jpg";
 
 export default {
   name: "App",
 
   components: {
-    HelloWorld,
+    Main,
   },
-
   data: () => ({
-    //
+    bg,
   }),
 };
 </script>
