@@ -2,7 +2,7 @@
   <v-container
     class="buttonList"
     :style="{
-      gridTemplateColumns: `repeat(${columns}, 50px)`,
+      gridTemplateColumns: `repeat(${columns}, 75px)`,
     }"
   >
     <v-container
@@ -10,7 +10,10 @@
       :key="button.value"
       class="button"
       @click="$emit('onButtonClick', $event, button)"
-    />
+    >
+      <img v-if="button.icon" :src="button.icon" width="50" height="50" />
+      <span>{{ button.text }}</span>
+    </v-container>
   </v-container>
 </template>
 
@@ -19,16 +22,29 @@
   display: grid;
   justify-content: space-around;
   grid-auto-rows: 50px;
-  gap: 10px;
+  gap: 45px;
 }
 .button {
-  background-color: black;
+  width: 75px;
+  height: 75px;
+  border: 1px solid black;
+  position: relative;
+}
+
+.button > span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
 }
 </style>
 
 <script>
 export default {
   name: "ButtonList",
+  components: {},
+
   props: {
     buttons: {
       type: Array,

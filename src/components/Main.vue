@@ -26,6 +26,7 @@ import SDPagination from "./SDPagination.vue";
 import ProfileSelector from "./ProfileSelector.vue";
 import DeviceSelector from "./DeviceSelector.vue";
 import ButtonDialog from "./ButtonDialog.vue";
+import { wsMessages } from "../utils";
 
 export default {
   name: "UnixStreamDeckWeb",
@@ -37,169 +38,91 @@ export default {
     ButtonDialog,
   },
   data: () => ({
-    configs: {
-      fake_id: {
-        fake_profile: [
-          // // xl
-          // [
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          // ],
-          // normal
-          [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-          [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-          [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-        ],
-        fake_profile_2: [
-          // // xl
-          // [
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          // ],
-          // normal
-          [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-          [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-        ],
-      },
-      fake_id_2: {
-        fake_profile_2: [
-          // // xl
-          // [
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          //   {},
-          // ],
-          // normal
-          [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-        ],
-      },
-    },
-    device: "fake_id",
-    profile: "fake_profile",
+    configs: [],
+    deviceID: "",
+    profileID: "",
     page: 0,
     bg,
     buttonDialogShowed: false,
     selectedButton: null,
   }),
   computed: {
-    buttons() {
-      return this.configs[this.device][this.profile][this.page];
-    },
     devices() {
-      return Object.keys(this.configs).map((device) => ({
-        value: device,
-        text: device,
+      const devices = this.configs.map((device) => ({
+        value: device.serial,
+        text: device.serial,
       }));
+      return devices ?? [];
+    },
+    device() {
+      const device = this.configs.find(
+        (device) => device.serial === this.deviceID
+      );
+      return device ?? { profiles: [] };
     },
     profiles() {
-      return Object.keys(this.configs[this.device]).map((profile) => ({
-        value: profile,
-        text: profile,
+      const profiles = this.device.profiles.map((profile) => ({
+        value: profile.name,
+        text: profile.name,
       }));
+      return profiles ?? [];
+    },
+    profile() {
+      const profile = this.device.profiles.find(
+        (profile) => profile.name === this.profileID
+      );
+      return profile ?? { pages: [] };
     },
     pages() {
-      return this.configs[this.device][this.profile];
+      return this.profile.pages;
+    },
+    buttons() {
+      const buttons = this.pages[this.page];
+      return buttons ?? [];
     },
     selectedButtonConfig() {
-      return this.buttons[this.selectedButton];
+      const selectedButtonConfig = this.buttons[this.selectedButton];
+      return selectedButtonConfig ?? {};
     },
   },
   watch: {
     device() {
-      this.profile = Object.keys(this.configs[this.device])[0];
+      this.profileID = this.profile.name;
     },
     profile() {
       this.page = 0;
     },
+  },
+  beforeMount: function () {
+    const ws = new WebSocket("ws://192.168.1.100:8080");
+    ws.onopen = function () {
+      ws.send(JSON.stringify(wsMessages.getConfig));
+    };
+    ws.onmessage = (event) => {
+      const response = JSON.parse(event.data);
+      switch (response.type) {
+        case wsMessages.getConfig.type:
+          this.configs = JSON.parse(response.data).decks.filter((deck) => {
+            if (deck.serial !== "") {
+              if (this.deviceID === "") {
+                this.deviceID = deck.serial;
+                this.profileID = deck.profiles[0].name;
+              }
+              return true;
+            }
+          });
+          break;
+      }
+    };
+
+    ws.onclose = function () {
+      console.log("closed");
+      // todo - show notice that connection is lost
+    };
+    ws.onerror = function () {
+      console.log("err");
+      // todo - show notice that connection is lost
+    };
   },
   methods: {
     onPageAdd() {
