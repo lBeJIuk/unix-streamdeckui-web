@@ -9,6 +9,7 @@
   <SDPagination
     v-model:active-page="page"
     :pages="pages.length"
+    class="SDPagination"
     @on-page-add="onPageAdd"
   />
   <ButtonDialog
@@ -17,7 +18,11 @@
   />
 </template>
 
-<style scoped></style>
+<style scoped>
+.SDPagination {
+  margin-top: 40px;
+}
+</style>
 
 <script>
 import bg from "../assets/bg.jpg";

@@ -25,6 +25,7 @@
   gap: 45px;
 }
 .button {
+  cursor: pointer;
   width: 75px;
   height: 75px;
   border: 1px solid black;
