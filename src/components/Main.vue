@@ -21,6 +21,7 @@
   <ButtonDialog
     v-model="buttonDialogShowed"
     :button-config="selectedButtonConfig"
+    @on-update="onButtonUpdate"
   />
 </template>
 
@@ -55,7 +56,7 @@ export default {
     page: 0,
     bg,
     buttonDialogShowed: false,
-    selectedButton: null,
+    selectedButtonIndex: null,
     draggedButton: null,
     ws: null,
   }),
@@ -94,7 +95,7 @@ export default {
       return buttons ?? [];
     },
     selectedButtonConfig() {
-      const selectedButtonConfig = this.buttons[this.selectedButton];
+      const selectedButtonConfig = this.buttons[this.selectedButtonIndex];
       return selectedButtonConfig ?? {};
     },
   },
@@ -157,9 +158,8 @@ export default {
       ];
       this.profile = newProfileName;
     },
-    onDeckButtonClick(e, button) {
-      console.log(e, button);
-      this.buttons.filter((el) => el.id === button.id);
+    onDeckButtonClick(event, index) {
+      this.selectedButtonIndex = index;
       this.buttonDialogShowed = true;
     },
     onDragStart(event, index, button) {
@@ -225,6 +225,17 @@ export default {
         decks: this.configs,
       });
       // this.ws.send(JSON.stringify(msg));
+    },
+    onButtonUpdate(newButtonConfig) {
+      const tmpConfigs = [...this.configs];
+      const pathInfo = this.getPathInfo(tmpConfigs);
+      if (pathInfo) {
+        pathInfo.buttons.splice(this.selectedButtonIndex, 1, newButtonConfig);
+        tmpConfigs[pathInfo.deviceIndex].profiles[pathInfo.profileIndex].pages[
+          pathInfo.pageIndex
+        ] = pathInfo.buttons;
+        this.configs = tmpConfigs;
+      }
     },
   },
 };

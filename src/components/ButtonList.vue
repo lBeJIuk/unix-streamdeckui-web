@@ -12,7 +12,7 @@
       class="button button--dragable"
       draggable="true"
       :data-index="index"
-      @click="$emit('onButtonClick', $event, button)"
+      @click="$emit('onButtonClick', $event, index, button)"
       @dragstart="onDragStart($event, index, button)"
       @dragenter="onDragEnter($event, index, button)"
       @dragend="onDragEnd($event, index, button)"

@@ -11,9 +11,20 @@
       <v-card-actions>
         <v-btn
           color="primary"
-          block
+          class="elevation-6"
           @click="$emit('update:modelValue', !modelValue)"
-          >Close Dialog</v-btn
+          >save</v-btn
+        >
+        <v-spacer></v-spacer>
+        <v-btn icon>
+          <v-icon @click="onDeleteClick">mdi-delete</v-icon>
+        </v-btn>
+        <v-spacer></v-spacer>
+        <v-btn
+          color="error"
+          class="elevation-6"
+          @click="$emit('update:modelValue', !modelValue)"
+          >close</v-btn
         >
       </v-card-actions>
     </v-card>
@@ -28,9 +39,20 @@ export default {
       type: Boolean,
       default: false,
     },
+    buttonConfig: {
+      type: Object,
+      default: () => ({}),
+    },
   },
   emits: {
     "update:modelValue": null,
+    onUpdate: null,
+  },
+  methods: {
+    onDeleteClick() {
+      this.$emit("onUpdate", {});
+      this.$emit("update:modelValue", !this.modelValue);
+    },
   },
 };
 </script>
