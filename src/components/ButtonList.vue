@@ -4,12 +4,18 @@
     :style="{
       gridTemplateColumns: `repeat(${columns}, 75px)`,
     }"
+    @dragenter.prevent
   >
     <v-container
-      v-for="button in buttons"
+      v-for="(button, index) in indexedButtons"
       :key="button.value"
-      class="button"
+      class="button button--dragable"
+      draggable="true"
+      :data-index="index"
       @click="$emit('onButtonClick', $event, button)"
+      @dragstart="onDragStart($event, index, button)"
+      @dragenter="onDragEnter($event, index, button)"
+      @dragend="onDragEnd($event, index, button)"
     >
       <img v-if="button.icon" :src="button.icon" width="50" height="50" />
       <span>{{ button.text }}</span>
@@ -45,7 +51,6 @@
 export default {
   name: "ButtonList",
   components: {},
-
   props: {
     buttons: {
       type: Array,
@@ -54,6 +59,9 @@ export default {
   },
   emits: {
     onButtonClick: null,
+    onDragStart: null,
+    onDragEnd: null,
+    onDragEnter: null,
   },
   computed: {
     columns() {
@@ -70,6 +78,23 @@ export default {
           break;
       }
       return cols;
+    },
+    indexedButtons() {
+      return this.buttons.map((button, index) => {
+        button.index = index;
+        return button;
+      });
+    },
+  },
+  methods: {
+    onDragStart(event, index, button) {
+      this.$emit("onDragStart", event, index, button);
+    },
+    onDragEnter(event, index, button) {
+      this.$emit("onDragEnter", event, index, button);
+    },
+    onDragEnd(event, index, button) {
+      this.$emit("onDragEnd", event, index, button);
     },
   },
 };

@@ -5,7 +5,13 @@
     :profiles="profiles"
     @on-profile-add="onProfileAdd"
   />
-  <ButtonList :buttons="buttons" @on-button-click="onDeckButtonClick" />
+  <ButtonList
+    :buttons="buttons"
+    @on-button-click="onDeckButtonClick"
+    @on-drag-start="onDragStart"
+    @on-drag-enter="onDragEnter"
+    @on-drag-end="onDragEnd"
+  />
   <SDPagination
     v-model:active-page="page"
     :pages="pages.length"
@@ -50,6 +56,8 @@ export default {
     bg,
     buttonDialogShowed: false,
     selectedButton: null,
+    draggedButton: null,
+    ws: null,
   }),
   computed: {
     devices() {
@@ -99,11 +107,11 @@ export default {
     },
   },
   beforeMount: function () {
-    const ws = new WebSocket("ws://192.168.1.100:8080");
-    ws.onopen = function () {
-      ws.send(JSON.stringify(wsMessages.getConfig));
+    this.ws = new WebSocket("ws://192.168.1.100:8080");
+    this.ws.onopen = () => {
+      this.ws.send(JSON.stringify(wsMessages.getConfig));
     };
-    ws.onmessage = (event) => {
+    this.ws.onmessage = (event) => {
       const response = JSON.parse(event.data);
       switch (response.type) {
         case wsMessages.getConfig.type:
@@ -120,11 +128,11 @@ export default {
       }
     };
 
-    ws.onclose = function () {
+    this.ws.onclose = function () {
       console.log("closed");
       // todo - show notice that connection is lost
     };
-    ws.onerror = function () {
+    this.ws.onerror = function () {
       console.log("err");
       // todo - show notice that connection is lost
     };
@@ -153,6 +161,70 @@ export default {
       console.log(e, button);
       this.buttons.filter((el) => el.id === button.id);
       this.buttonDialogShowed = true;
+    },
+    onDragStart(event, index, button) {
+      this.draggedButton = button;
+    },
+    getPathInfo(config) {
+      for (let deviceIndex = 0; deviceIndex < config.length; deviceIndex++) {
+        if (this.deviceID === config[deviceIndex].serial) {
+          for (
+            let profileIndex = 0;
+            profileIndex < config[deviceIndex].profiles.length;
+            profileIndex++
+          ) {
+            if (
+              this.profileID === config[deviceIndex].profiles[profileIndex].name
+            ) {
+              for (
+                let pageIndex = 0;
+                pageIndex <
+                config[deviceIndex].profiles[profileIndex].pages.length;
+                pageIndex++
+              ) {
+                if (this.page === pageIndex) {
+                  return {
+                    deviceIndex: deviceIndex,
+                    profileIndex: profileIndex,
+                    pageIndex: pageIndex,
+                    buttons: [
+                      ...config[deviceIndex].profiles[profileIndex].pages[
+                        pageIndex
+                      ],
+                    ],
+                  };
+                }
+              }
+            }
+          }
+        }
+      }
+      return false;
+    },
+    onDragEnter(event, hoveredButtonIndex) {
+      if (this.draggedButton.index !== hoveredButtonIndex) {
+        const tmpConfigs = [...this.configs];
+        const pathInfo = this.getPathInfo(tmpConfigs);
+        if (pathInfo) {
+          pathInfo.buttons.splice(this.draggedButton.index, 1);
+          pathInfo.buttons.splice(hoveredButtonIndex, 0, this.draggedButton);
+          this.draggedButton.index = hoveredButtonIndex;
+          tmpConfigs[pathInfo.deviceIndex].profiles[
+            pathInfo.profileIndex
+          ].pages[pathInfo.pageIndex] = pathInfo.buttons;
+          this.configs = tmpConfigs;
+        }
+      }
+    },
+    onDragEnd() {
+      this.saveConfig();
+    },
+    saveConfig() {
+      const msg = { ...wsMessages.setConfig };
+      msg.data = JSON.stringify({
+        decks: this.configs,
+      });
+      // this.ws.send(JSON.stringify(msg));
     },
   },
 };
