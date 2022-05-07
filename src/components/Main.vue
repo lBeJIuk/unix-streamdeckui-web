@@ -72,7 +72,7 @@ export default {
       const device = this.configs.find(
         (device) => device.serial === this.deviceID
       );
-      return device ?? { profiles: [] };
+      return device ?? { serial: "", profiles: [] };
     },
     profiles() {
       const profiles = this.device.profiles.map((profile) => ({
@@ -85,7 +85,7 @@ export default {
       const profile = this.device.profiles.find(
         (profile) => profile.name === this.profileID
       );
-      return profile ?? { pages: [] };
+      return profile ?? { name: "", pages: [] };
     },
     pages() {
       return this.profile.pages;

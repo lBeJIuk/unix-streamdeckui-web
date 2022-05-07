@@ -10,7 +10,7 @@
         v-for="deviceOption in devices"
         :key="deviceOption.value"
         :value="deviceOption.value"
-        :selected="modelValue === deviceOption.value"
+        :selected="modelValue.serial === deviceOption.value"
       >
         {{ deviceOption.text }}
       </option>
@@ -27,8 +27,8 @@ export default {
       default: () => [],
     },
     modelValue: {
-      type: String,
-      default: "",
+      type: Object,
+      default: () => ({}),
     },
   },
   emits: {

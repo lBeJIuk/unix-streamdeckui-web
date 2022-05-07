@@ -10,7 +10,7 @@
         v-for="profilesOptions in profiles"
         :key="profilesOptions.value"
         :value="profilesOptions.value"
-        :selected="modelValue === profilesOptions.value"
+        :selected="modelValue.name === profilesOptions.value"
       >
         {{ profilesOptions.text }}
       </option>
@@ -29,8 +29,8 @@ export default {
   name: "ProfileSelector",
   props: {
     modelValue: {
-      type: String,
-      default: "",
+      type: Object,
+      default: () => ({}),
     },
     profiles: {
       type: Array,
