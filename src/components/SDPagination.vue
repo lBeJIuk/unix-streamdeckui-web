@@ -11,6 +11,7 @@
       color="primary"
       style="width: 300px"
       @update:model-value="updateActivePage"
+      @dragenter="onDragEnter($event)"
     />
 
     <v-btn
@@ -38,10 +39,23 @@ export default {
   emits: {
     onPageAdd: null,
     "update:activePage": null,
+    onDndPageChange: null,
   },
   methods: {
     updateActivePage(activePage) {
       this.$emit("update:activePage", activePage);
+    },
+    onDragEnter(event) {
+      for (let i = 0; i < event.path.length; i++) {
+        if (event.path[i]?.classList?.contains("v-pagination__item")) {
+          this.$emit(
+            "onDndPageChange",
+            parseInt(event.path[i].dataset.page, 10)
+          );
+          break;
+        }
+      }
+      event.path;
     },
   },
 };

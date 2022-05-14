@@ -10,13 +10,13 @@
     @on-button-click="onDeckButtonClick"
     @on-drag-start="onDragStart"
     @on-drag-enter="onDragEnter"
-    @on-drag-end="onDragEnd"
   />
   <SDPagination
     v-model:active-page="page"
     :pages="pages.length"
     class="SDPagination"
     @on-page-add="onPageAdd"
+    @on-dnd-page-change="onDndPageChange"
   />
   <ButtonDialog
     v-model="buttonDialogShowed"
@@ -106,6 +106,9 @@ export default {
     profile() {
       this.page = 0;
     },
+    configs() {
+      this.saveConfig();
+    },
   },
   beforeMount: function () {
     this.ws = new WebSocket("ws://192.168.1.100:8080");
@@ -163,7 +166,7 @@ export default {
       this.buttonDialogShowed = true;
     },
     onDragStart(event, index, button) {
-      this.draggedButton = button;
+      this.draggedButton = { button, page: this.page };
     },
     getPathInfo(config) {
       for (let deviceIndex = 0; deviceIndex < config.length; deviceIndex++) {
@@ -202,13 +205,33 @@ export default {
       return false;
     },
     onDragEnter(event, hoveredButtonIndex) {
-      if (this.draggedButton.index !== hoveredButtonIndex) {
+      if (
+        this.draggedButton.button.page !== this.page ||
+        this.draggedButton.button.index !== hoveredButtonIndex
+      ) {
         const tmpConfigs = [...this.configs];
         const pathInfo = this.getPathInfo(tmpConfigs);
         if (pathInfo) {
-          pathInfo.buttons.splice(this.draggedButton.index, 1);
-          pathInfo.buttons.splice(hoveredButtonIndex, 0, this.draggedButton);
-          this.draggedButton.index = hoveredButtonIndex;
+          if (this.draggedButton.page !== this.page) {
+            // Page was changed
+            // Buttons should be replaced
+            this.draggedButton.button.index = hoveredButtonIndex;
+            pathInfo.buttons.splice(
+              hoveredButtonIndex,
+              1,
+              this.draggedButton.button
+            );
+          } else {
+            // Same page
+            // Buttons should be moved
+            pathInfo.buttons.splice(this.draggedButton.button.index, 1);
+            this.draggedButton.button.index = hoveredButtonIndex;
+            pathInfo.buttons.splice(
+              hoveredButtonIndex,
+              0,
+              this.draggedButton.button
+            );
+          }
           tmpConfigs[pathInfo.deviceIndex].profiles[
             pathInfo.profileIndex
           ].pages[pathInfo.pageIndex] = pathInfo.buttons;
@@ -216,15 +239,12 @@ export default {
         }
       }
     },
-    onDragEnd() {
-      this.saveConfig();
-    },
     saveConfig() {
       const msg = { ...wsMessages.setConfig };
       msg.data = JSON.stringify({
         decks: this.configs,
       });
-      // this.ws.send(JSON.stringify(msg));
+      this.ws.send(JSON.stringify(msg));
     },
     onButtonUpdate(newButtonConfig) {
       const tmpConfigs = [...this.configs];
@@ -236,6 +256,9 @@ export default {
         ] = pathInfo.buttons;
         this.configs = tmpConfigs;
       }
+    },
+    onDndPageChange(page) {
+      this.page = page;
     },
   },
 };
