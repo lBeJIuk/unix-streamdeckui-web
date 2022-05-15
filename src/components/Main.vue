@@ -59,6 +59,7 @@ export default {
     selectedButtonIndex: null,
     draggedButton: null,
     ws: null,
+    replaceWhileDrag: false,
   }),
   computed: {
     devices() {
@@ -108,6 +109,13 @@ export default {
     },
     configs() {
       this.saveConfig();
+    },
+    page() {
+      if (this.draggedButton !== null) {
+        // First element on new page should be replaced.
+        // Next elements should be moved.
+        this.replaceWhileDrag = true;
+      }
     },
   },
   beforeMount: function () {
@@ -212,7 +220,7 @@ export default {
         const tmpConfigs = [...this.configs];
         const pathInfo = this.getPathInfo(tmpConfigs);
         if (pathInfo) {
-          if (this.draggedButton.page !== this.page) {
+          if (this.replaceWhileDrag) {
             // Page was changed
             // Buttons should be replaced
             this.draggedButton.button.index = hoveredButtonIndex;
@@ -221,6 +229,7 @@ export default {
               1,
               this.draggedButton.button
             );
+            this.replaceWhileDrag = false;
           } else {
             // Same page
             // Buttons should be moved
@@ -244,7 +253,7 @@ export default {
       msg.data = JSON.stringify({
         decks: this.configs,
       });
-      this.ws.send(JSON.stringify(msg));
+      // this.ws.send(JSON.stringify(msg));
     },
     onButtonUpdate(newButtonConfig) {
       const tmpConfigs = [...this.configs];
