@@ -17,8 +17,22 @@
       @dragenter="onDragEnter($event, index, button)"
       @dragend="onDragEnd($event, index, button)"
     >
-      <img v-if="button.icon" :src="button.icon" width="50" height="50" />
-      <span>{{ button.text }}</span>
+      <img
+        v-if="button?.options?.icon"
+        :src="button.options.icon"
+        width="50"
+        height="50"
+      />
+      <img
+        v-else-if="button?.options?.backgroundColor"
+        width="50"
+        height="50"
+        :style="{ backgroundColor: `${button.options.backgroundColor}` }"
+      />
+      <span
+        :style="{ color: `${button?.options?.textColor}`, fontSize: '10px' }"
+        >{{ button?.options?.text }}</span
+      >
     </v-container>
   </v-container>
 </template>
