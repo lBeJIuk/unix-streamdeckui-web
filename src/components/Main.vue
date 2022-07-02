@@ -19,8 +19,8 @@
     @on-dnd-page-change="onDndPageChange"
   />
   <ButtonDialog
-    v-model="buttonDialogShowed"
-    :button-config="selectedButtonConfig"
+    v-model:opened="buttonDialogShowed"
+    :button="selectedButtonConfig"
     @on-update="onButtonUpdate"
   />
 </template>
@@ -39,6 +39,7 @@ import ProfileSelector from "./ProfileSelector.vue";
 import DeviceSelector from "./DeviceSelector.vue";
 import ButtonDialog from "./ButtonDialog.vue";
 import { wsMessages } from "../utils";
+import { getDummyButton } from "./utils";
 
 export default {
   name: "UnixStreamDeckWeb",
@@ -60,6 +61,7 @@ export default {
     draggedButton: null,
     ws: null,
     replaceWhileDrag: false,
+    allowUpdates: false,
   }),
   computed: {
     devices() {
@@ -127,15 +129,43 @@ export default {
       const response = JSON.parse(event.data);
       switch (response.type) {
         case wsMessages.getConfig.type:
-          this.configs = JSON.parse(response.data).decks.filter((deck) => {
+          this.configs = JSON.parse(response.data).decks.reduce((acc, deck) => {
             if (deck.serial !== "") {
               if (this.deviceID === "") {
                 this.deviceID = deck.serial;
                 this.profileID = deck.profiles[0].name;
               }
-              return true;
+              for (
+                let profileIndex = 0;
+                profileIndex < deck.profiles.length;
+                profileIndex++
+              ) {
+                for (
+                  let pagesIndex = 0;
+                  pagesIndex < deck.profiles[profileIndex].pages.length;
+                  pagesIndex++
+                ) {
+                  for (
+                    let buttonIndex = 0;
+                    buttonIndex <
+                    deck.profiles[profileIndex].pages[pagesIndex].length;
+                    buttonIndex++
+                  ) {
+                    deck.profiles[profileIndex].pages[pagesIndex][buttonIndex] =
+                      {
+                        ...getDummyButton(buttonIndex),
+                        ...deck.profiles[profileIndex].pages[pagesIndex][
+                          buttonIndex
+                        ],
+                      };
+                  }
+                }
+              }
+              acc.push(deck);
+              return acc;
             }
-          });
+          }, []);
+          setTimeout(() => (this.allowUpdates = true), 100);
           break;
       }
     };
@@ -215,7 +245,7 @@ export default {
     onDragEnter(event, hoveredButtonIndex) {
       if (
         this.draggedButton.button.page !== this.page ||
-        this.draggedButton.button.index !== hoveredButtonIndex
+        this.draggedButton.button.buttonIndex !== hoveredButtonIndex
       ) {
         const tmpConfigs = [...this.configs];
         const pathInfo = this.getPathInfo(tmpConfigs);
@@ -223,7 +253,7 @@ export default {
           if (this.replaceWhileDrag) {
             // Page was changed
             // Buttons should be replaced
-            this.draggedButton.button.index = hoveredButtonIndex;
+            this.draggedButton.button.buttonIndex = hoveredButtonIndex;
             pathInfo.buttons.splice(
               hoveredButtonIndex,
               1,
@@ -233,8 +263,8 @@ export default {
           } else {
             // Same page
             // Buttons should be moved
-            pathInfo.buttons.splice(this.draggedButton.button.index, 1);
-            this.draggedButton.button.index = hoveredButtonIndex;
+            pathInfo.buttons.splice(this.draggedButton.button.buttonIndex, 1);
+            this.draggedButton.button.buttonIndex = hoveredButtonIndex;
             pathInfo.buttons.splice(
               hoveredButtonIndex,
               0,
@@ -249,11 +279,65 @@ export default {
       }
     },
     saveConfig() {
-      const msg = { ...wsMessages.setConfig };
-      msg.data = JSON.stringify({
-        decks: this.configs,
-      });
-      // this.ws.send(JSON.stringify(msg));
+      if (this.allowUpdates) {
+        const msg = { ...wsMessages.setConfig };
+        const config = this.changeButton(
+          JSON.parse(JSON.stringify(this.configs)), // hack-clone
+          ({ button }) => {
+            if (
+              button.type === "" &&
+              Object.keys(button.options).length === 0
+            ) {
+              return {};
+            }
+            delete button.buttonIndex;
+            return button;
+          }
+        );
+        msg.data = JSON.stringify({
+          decks: config,
+        });
+        console.log("update", config);
+        this.ws.send(JSON.stringify(msg));
+      }
+    },
+    changeButton(initialConfig, changeFunction) {
+      const config = [...initialConfig];
+      for (let deckIndex = 0; deckIndex < config.length; deckIndex++) {
+        const deck = config[deckIndex];
+        for (
+          let profileIndex = 0;
+          profileIndex < deck.profiles.length;
+          profileIndex++
+        ) {
+          const profile = deck.profiles[profileIndex];
+          for (
+            let pagesIndex = 0;
+            pagesIndex < profile.pages.length;
+            pagesIndex++
+          ) {
+            const page = profile.pages[pagesIndex];
+            for (
+              let buttonIndex = 0;
+              buttonIndex < page.length;
+              buttonIndex++
+            ) {
+              const button = page[buttonIndex];
+              config[deckIndex].profiles[profileIndex].pages[pagesIndex][
+                buttonIndex
+              ] = changeFunction({
+                config,
+                button,
+                deckIndex,
+                profileIndex,
+                pagesIndex,
+                buttonIndex,
+              });
+            }
+          }
+        }
+      }
+      return config;
     },
     onButtonUpdate(newButtonConfig) {
       const tmpConfigs = [...this.configs];

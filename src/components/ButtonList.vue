@@ -7,7 +7,7 @@
     @dragenter.prevent
   >
     <v-container
-      v-for="(button, index) in indexedButtons"
+      v-for="(button, index) in buttons"
       :key="button.value"
       class="button button--dragable"
       draggable="true"
@@ -50,6 +50,7 @@
   height: 75px;
   border: 1px solid black;
   position: relative;
+  padding: 12px;
 }
 
 .button > span {
@@ -92,12 +93,6 @@ export default {
           break;
       }
       return cols;
-    },
-    indexedButtons() {
-      return this.buttons.map((button, index) => {
-        button.index = index;
-        return button;
-      });
     },
   },
   methods: {
