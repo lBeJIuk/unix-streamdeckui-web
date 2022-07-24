@@ -1,5 +1,10 @@
 <template>
-  <v-dialog :model-value="opened" @click:outside="closeDialog">
+  <v-dialog
+    :model-value="opened"
+    min-width="400"
+    class="ButtonDialog"
+    @click:outside="closeDialog"
+  >
     <v-card>
       <div v-if="button.options.icon" class="image-container">
         <v-img :src="button.options.icon" height="200" />
@@ -40,11 +45,27 @@
           @input="updateButton('textColor', $event.target.value)"
         />
       </v-form>
-
-      <v-card-text>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-        tempor incididunt ut labore et dolore magna aliqua.
-      </v-card-text>
+      <v-card-text> Extra configs </v-card-text>
+      <v-combobox
+        :items="handlers"
+        :model-value="button.type"
+        @update:model-value="onTypeUpdate"
+      ></v-combobox>
+      <CommandHandler
+        v-if="button.type === 'command'"
+        :options="button.options"
+        @update-options="updateOption"
+      />
+      <BrowserHandler
+        v-if="button.type === 'browser'"
+        :options="button.options"
+        @update-options="updateOption"
+      />
+      <ChangePageHandler
+        v-if="button.type === 'changePage'"
+        :options="button.options"
+        @update-options="updateOption"
+      />
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn icon>
@@ -57,10 +78,18 @@
 </template>
 
 <script>
-import { getDummyButton } from "./utils";
+import { getDefaultButton, getDummyButton } from "../utils";
+import CommandHandler from "./CommandHandler.vue";
+import BrowserHandler from "./BrowserHandler.vue";
+import ChangePageHandler from "./ChangePageHandler.vue";
 
 export default {
   name: "ButtonDialog",
+  components: {
+    CommandHandler,
+    BrowserHandler,
+    ChangePageHandler,
+  },
   props: {
     opened: {
       type: Boolean,
@@ -75,6 +104,13 @@ export default {
     "update:opened": null,
     onUpdate: null,
   },
+  data: () => ({
+    handlers: [
+      { value: "command", title: "command" },
+      { value: "browser", title: "browser" },
+      { value: "changePage", title: "changePage" },
+    ],
+  }),
   methods: {
     selectFile(event) {
       const reader = new FileReader();
@@ -98,11 +134,22 @@ export default {
       button.options[prop] = value;
       this.$emit("onUpdate", button);
     },
+    onTypeUpdate(newType) {
+      const button = getDefaultButton(this.button);
+      button.type = newType;
+      this.$emit("onUpdate", button);
+    },
+    updateOption(option, value) {
+      this.updateButton(option, value);
+    },
   },
 };
 </script>
 
 <style scoped>
+.ButtonDialog {
+  width: 50%;
+}
 .image-container {
   position: relative;
 }

@@ -38,8 +38,7 @@ import SDPagination from "./SDPagination.vue";
 import ProfileSelector from "./ProfileSelector.vue";
 import DeviceSelector from "./DeviceSelector.vue";
 import ButtonDialog from "./ButtonDialog.vue";
-import { wsMessages } from "../utils";
-import { getDummyButton } from "./utils";
+import { wsMessages, getDummyButton } from "../utils";
 
 export default {
   name: "UnixStreamDeckWeb",

@@ -13,3 +13,15 @@ export const wsResponses = {
     type: "getConfig",
   },
 };
+
+export const getDummyButton = (buttonIndex) => ({
+  type: "",
+  options: {},
+  buttonIndex,
+});
+
+export const getDefaultButton = (button) => ({
+  type: button.type,
+  options: { ...button.options },
+  buttonIndex: button.buttonIndex,
+});
