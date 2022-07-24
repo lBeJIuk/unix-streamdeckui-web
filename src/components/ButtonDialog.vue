@@ -1,11 +1,12 @@
 <template>
   <v-dialog :model-value="opened" @click:outside="closeDialog">
     <v-card>
-      <v-img
-        v-if="button.options.icon"
-        :src="button.options.icon"
-        height="200"
-      />
+      <div v-if="button.options.icon" class="image-container">
+        <v-img :src="button.options.icon" height="200" />
+        <v-btn icon>
+          <v-icon @click="onImageDeleteClick">mdi-delete</v-icon>
+        </v-btn>
+      </div>
       <v-img
         v-if="!button.options.icon && button.options.backgroundColor"
         :style="{
@@ -13,6 +14,8 @@
         }"
         height="200"
       />
+
+      <v-file-input truncate-length="15" @change="selectFile"></v-file-input>
       <v-card-subtitle> Configurations </v-card-subtitle>
       <v-form>
         <v-text-field
@@ -73,9 +76,19 @@ export default {
     onUpdate: null,
   },
   methods: {
+    selectFile(event) {
+      const reader = new FileReader();
+      reader.readAsDataURL(event.target.files[0]);
+      reader.onload = () => {
+        this.updateButton("icon", reader.result);
+      };
+    },
     onDeleteClick() {
       this.$emit("onUpdate", getDummyButton(this.button.buttonIndex));
       this.closeDialog();
+    },
+    onImageDeleteClick() {
+      this.updateButton("icon", "");
     },
     closeDialog() {
       this.$emit("update:opened", !this.opened);
@@ -89,4 +102,14 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.image-container {
+  position: relative;
+}
+.image-container > button {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%);
+}
+</style>
