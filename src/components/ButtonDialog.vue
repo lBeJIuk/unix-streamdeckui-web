@@ -5,7 +5,7 @@
     class="ButtonDialog"
     @click:outside="closeDialog"
   >
-    <v-card>
+    <v-card class="DialogCard">
       <div v-if="button.options.icon" class="image-container">
         <v-img :src="button.options.icon" height="200" />
         <v-btn icon>
@@ -79,9 +79,9 @@
 
 <script>
 import { getDefaultButton, getDummyButton } from "../utils";
-import CommandHandler from "./CommandHandler.vue";
-import BrowserHandler from "./BrowserHandler.vue";
-import ChangePageHandler from "./ChangePageHandler.vue";
+import CommandHandler from "./handlers/CommandHandler.vue";
+import BrowserHandler from "./handlers/BrowserHandler.vue";
+import ChangePageHandler from "./handlers/ChangePageHandler.vue";
 
 export default {
   name: "ButtonDialog",
@@ -147,8 +147,8 @@ export default {
 </script>
 
 <style scoped>
-.ButtonDialog {
-  width: 50%;
+.ButtonDialog .DialogCard {
+  width: 50vw;
 }
 .image-container {
   position: relative;

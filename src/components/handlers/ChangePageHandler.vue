@@ -1,7 +1,7 @@
 <template>
-  <input
+  <v-text-field
     placeholder="enter page number"
-    :value="options.page"
+    :model-value="options.page"
     @change="$emit('updateOptions', 'page', parseInt($event.target.value, 10))"
   />
 </template>

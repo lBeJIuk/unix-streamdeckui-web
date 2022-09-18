@@ -1,14 +1,14 @@
 <template>
-  <input
-    placeholder="enter URL"
-    :value="options.url"
-    @change="$emit('updateOptions', 'url', $event.target.value)"
+  <v-text-field
+    placeholder="enter command"
+    :model-value="options.command"
+    @change="$emit('updateOptions', 'command', $event.target.value)"
   />
 </template>
 
 <script>
 export default {
-  name: "BrowserHandler",
+  name: "CommandHandler",
   props: {
     options: {
       type: Object,
