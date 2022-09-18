@@ -22,6 +22,14 @@ export const getDummyButton = (buttonIndex) => ({
 
 export const getDefaultButton = (button) => ({
   type: button.type,
-  options: { ...button.options },
+  options: {
+    icon: button.options.icon,
+    backgroundColor: button.options.backgroundColor,
+    pressedIcon: button.options.pressedIcon,
+    text: button.options.text,
+    textColor: button.options.textColor,
+    textSize: button.options.textSize,
+    textAlignment: button.options.textAlignment,
+  },
   buttonIndex: button.buttonIndex,
 });

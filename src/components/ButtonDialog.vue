@@ -66,6 +66,11 @@
         :options="button.options"
         @update-options="updateOption"
       />
+      <KeyLightHandler
+        v-if="button.type === 'keyLight'"
+        :options="button.options"
+        @update-options="updateOption"
+      />
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn icon>
@@ -82,6 +87,7 @@ import { getDefaultButton, getDummyButton } from "../utils";
 import CommandHandler from "./handlers/CommandHandler.vue";
 import BrowserHandler from "./handlers/BrowserHandler.vue";
 import ChangePageHandler from "./handlers/ChangePageHandler.vue";
+import KeyLightHandler from "./handlers/KeyLightHandler.vue";
 
 export default {
   name: "ButtonDialog",
@@ -89,6 +95,7 @@ export default {
     CommandHandler,
     BrowserHandler,
     ChangePageHandler,
+    KeyLightHandler,
   },
   props: {
     opened: {
@@ -109,6 +116,7 @@ export default {
       { value: "command", title: "command" },
       { value: "browser", title: "browser" },
       { value: "changePage", title: "changePage" },
+      { value: "keyLight", title: "keyLight" },
     ],
   }),
   methods: {
