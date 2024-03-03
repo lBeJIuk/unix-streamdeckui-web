@@ -17,7 +17,7 @@
     <v-btn
       icon="mdi-card-plus-outline"
       color="primary"
-      size="x-small"
+      size="small"
       @click="$emit('onPageAdd')"
     />
   </v-container>

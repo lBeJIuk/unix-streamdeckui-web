@@ -19,8 +19,11 @@
         }"
         height="200"
       />
-
-      <v-file-input truncate-length="15" @change="selectFile"></v-file-input>
+      <v-file-input
+        truncate-length="15"
+        accept="image/png, image/jpeg"
+        @change="selectFile"
+      ></v-file-input>
       <v-card-subtitle> Configurations </v-card-subtitle>
       <v-form>
         <v-text-field
@@ -71,6 +74,11 @@
         :options="button.options"
         @update-options="updateOption"
       />
+      <BrightnessHandler
+        v-if="button.type === 'brightness'"
+        :options="button.options"
+        @update-options="updateOption"
+      />
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn icon>
@@ -88,10 +96,12 @@ import CommandHandler from "./handlers/CommandHandler.vue";
 import BrowserHandler from "./handlers/BrowserHandler.vue";
 import ChangePageHandler from "./handlers/ChangePageHandler.vue";
 import KeyLightHandler from "./handlers/KeyLightHandler.vue";
+import BrightnessHandler from "@/components/handlers/BrightnessHandler.vue";
 
 export default {
   name: "ButtonDialog",
   components: {
+    BrightnessHandler,
     CommandHandler,
     BrowserHandler,
     ChangePageHandler,
@@ -117,6 +127,7 @@ export default {
       { value: "browser", title: "browser" },
       { value: "changePage", title: "changePage" },
       { value: "keyLight", title: "keyLight" },
+      { value: "brightness", title: "brightness" },
     ],
   }),
   methods: {

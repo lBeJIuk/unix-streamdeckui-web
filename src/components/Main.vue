@@ -180,12 +180,15 @@ export default {
   },
   methods: {
     onPageAdd() {
-      this.configs[this.device][this.profile].push(
-        Array.from(this.buttons, () => ({}))
+      this.profile.pages.push(
+        Array.from(this.buttons, (_, buttonIndex) =>
+          getDummyButton(buttonIndex)
+        )
       );
-      this.page = this.configs[this.device][this.profile].length - 1;
+      this.page = this.profile.pages.length - 1;
     },
     onProfileAdd() {
+      // @TODO fix
       let baseProfileName = "new profile",
         newProfileName = baseProfileName,
         index = 0;

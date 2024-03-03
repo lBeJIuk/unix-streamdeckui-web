@@ -18,7 +18,7 @@
     <v-btn
       icon="mdi-file-plus-outline"
       color="primary"
-      size="x-small"
+      size="small"
       @click="$emit('onProfileAdd')"
     />
   </v-container>
